@@ -1,25 +1,29 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Layout } from "antd";
+import { Header } from "antd/es/layout/layout";
+import "./App.css";
+import Calculator from "./components/Calculator/Calculator";
+import Logger from "./components/Logger/Logger";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    <Layout style={{ height: "100%" }}>
+      <Header style={{ color: "white" }}>
+        <h1 style={{ marginTop: 0 }}>Invosy-EST Salary Test</h1>
+      </Header>
+      <Layout style={{ height: "100%", justifyContent: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-around",
+            alignItems: "center",
+            flexDirection: "row",
+          }}
         >
-          Learn React
-        </a>
-      </header>
-    </div>
+          <Calculator />
+          <Logger />
+        </div>
+      </Layout>
+    </Layout>
   );
 }
 
