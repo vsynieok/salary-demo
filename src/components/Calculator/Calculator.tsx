@@ -1,16 +1,21 @@
-import { Button, Form, Input, Radio } from "antd";
+import { Button, Divider, Form, Input, Radio, Statistic } from "antd";
 import { useForm } from "antd/es/form/Form";
 import { useState } from "react";
-import { useAppDispatch } from "../../app/hooks";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { issueInvoice, resetCounter } from "../Global/GlobalSlice";
 import { addMessage } from "../Logger/LoggerSlice";
 
 const Calculator: React.FC = () => {
   const [form] = useForm();
 
   const dispatch = useAppDispatch();
+
+  const globalState = useAppSelector((state) => state.global);
+
   const [withTax, setWithTax] = useState<number>(0);
   const [taxableIncome, setTaxableIncome] = useState<number>(0);
   const [incomeTax, setIncomeTax] = useState<number>(0);
+  const [totalTaxes, setTotalTaxes] = useState<number>(0);
 
   const [monthlyIncome, setMonthlyIncome] = useState<number>(0);
 
@@ -19,7 +24,6 @@ const Calculator: React.FC = () => {
     monthlyIncome: number,
     taxOption: number
   ) => {
-    console.log(taxOption);
     let tax;
     switch (taxOption) {
       case 0:
@@ -38,29 +42,56 @@ const Calculator: React.FC = () => {
   };
 
   const onValuesChange = (c: any, v: any) => {
-    let gross = parseInt(v.gross);
-    let monthlyIncome = parseInt(v.monthlyIncome);
+    let exemption = v.exemption;
 
-    if (monthlyIncome <= 1200) {
-      form.setFieldsValue({ exemption: 0 });
-    } else if (monthlyIncome > 1200 && monthlyIncome < 2100) {
-      form.setFieldsValue({ exemption: 1 });
-    } else {
-      form.setFieldsValue({ exemption: 2 });
+    // executed only if monthly income was changed
+    if (c.monthlyIncome && v.monthlyIncome) {
+      let monthlyIncome = parseInt(v.monthlyIncome);
+
+      if (monthlyIncome <= 1200) {
+        exemption = 0;
+      } else if (monthlyIncome > 1200 && monthlyIncome < 2100) {
+        exemption = 1;
+      } else {
+        exemption = 2;
+      }
+      form.setFieldsValue({ exemption: exemption });
     }
 
-    setMonthlyIncome(monthlyIncome);
-
+    let gross = parseInt(v.gross);
     let taxable = gross - (v.pension === 1 ? gross * 0.02 : 0) - gross * 0.016;
-    setTaxableIncome(taxable);
+    let incomeTax = calculateTax(taxable, v.monthlyIncome, exemption);
+    let totalTaxes =
+      incomeTax + (v.pension === 1 ? gross * 0.02 : 0) + gross * 0.016;
 
-    let incomeTax = calculateTax(taxable, v.monthlyIncome, v.exemption);
+    setMonthlyIncome(monthlyIncome);
+    setTaxableIncome(taxable);
     setIncomeTax(incomeTax);
     setWithTax(gross + incomeTax + gross * 0.33 + gross * 0.08);
+    setTotalTaxes(totalTaxes);
   };
 
   const onClick = () => {
-    dispatch(addMessage("test"));
+    let gross = parseInt(form.getFieldValue("gross"));
+    let invoiceSum = gross - totalTaxes;
+    form.setFieldsValue({
+      monthlyIncome: globalState.invoiceSumsTotal + invoiceSum,
+    });
+
+    dispatch(issueInvoice(invoiceSum));
+    dispatch(
+      addMessage(
+        `Raised invoice (#${globalState.invoicesCount + 1}) for: ${gross}`
+      )
+    );
+    dispatch(
+      addMessage(`Total sum: ${globalState.invoiceSumsTotal + invoiceSum}`)
+    );
+  };
+
+  const onReset = () => {
+    dispatch(resetCounter());
+    dispatch(addMessage(`The month has been reset, going back to 0.`));
   };
 
   return (
@@ -86,14 +117,25 @@ const Calculator: React.FC = () => {
           </Radio.Group>
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit" onClick={onClick}>
+          <Button
+            style={{ marginRight: 10 }}
+            type="primary"
+            htmlType="submit"
+            onClick={onClick}
+          >
             Issue an invoice
           </Button>
+          <Button onClick={onReset}>Reset month</Button>
         </Form.Item>
-        <Form.Item label="Taxable income">{taxableIncome}</Form.Item>
-        <Form.Item label="Income tax">{incomeTax}</Form.Item>
-        <Form.Item label="Social tax (33%)">{withTax * 0.33}</Form.Item>
-        <Form.Item label="Total cost for employer">{withTax}</Form.Item>
+        <Divider />
+        <Statistic title="Taxable income" value={taxableIncome} />
+        <Statistic title="Income tax" value={incomeTax} />
+        <Statistic title="Total taxes" value={totalTaxes} />
+        <Statistic title="Total cost for employer" value={withTax} />
+        <Statistic
+          title="Net income"
+          value={parseInt(form.getFieldValue("gross")) - totalTaxes}
+        />
       </Form>
     </div>
   );
