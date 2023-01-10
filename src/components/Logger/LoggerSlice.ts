@@ -17,10 +17,13 @@ export const loggerSlice = createSlice({
             let messages = [...state.messages]
             messages.push(action.payload)
             return {...state, messages}
+        },
+        clearMessages: state => {
+            return {...state, messages: []}
         }
     }
 })
 
-export const { addMessage } = loggerSlice.actions;
+export const { addMessage, clearMessages } = loggerSlice.actions;
 
 export default loggerSlice.reducer

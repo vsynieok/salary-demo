@@ -17,6 +17,8 @@ function App() {
             justifyContent: "space-around",
             alignItems: "center",
             flexDirection: "row",
+            height: "100%",
+            marginTop: 50,
           }}
         >
           <Calculator />

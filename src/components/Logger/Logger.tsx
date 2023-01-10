@@ -9,10 +9,10 @@ const Logger: React.FC = () => {
   };
 
   return (
-    <div style={{ width: 400, height: "100%" }}>
+    <div style={{ width: 400 }}>
       <Input.TextArea
-        autoSize={{ minRows: 4, maxRows: 10 }}
-        rows={4}
+        autoSize={{ minRows: 10, maxRows: 10 }}
+        autoFocus
         readOnly
         value={getMessages()}
       ></Input.TextArea>

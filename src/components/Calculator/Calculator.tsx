@@ -3,7 +3,7 @@ import { useForm } from "antd/es/form/Form";
 import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { issueInvoice, resetCounter } from "../Global/GlobalSlice";
-import { addMessage } from "../Logger/LoggerSlice";
+import { addMessage, clearMessages } from "../Logger/LoggerSlice";
 
 const Calculator: React.FC = () => {
   const [form] = useForm();
@@ -27,11 +27,12 @@ const Calculator: React.FC = () => {
     let tax;
     switch (taxOption) {
       case 0:
-        tax = 0.2 * (taxableIncome - 654);
+        tax = taxableIncome >= 654 ? 0.2 * (taxableIncome - 654) : 0;
         return tax;
       case 1:
         let exemption = 654 - 0.72667 * (monthlyIncome - 1200);
-        tax = 0.2 * (taxableIncome - exemption);
+        tax =
+          taxableIncome >= exemption ? 0.2 * (taxableIncome - exemption) : 0;
         return tax;
       case 2:
         tax = 0.2 * taxableIncome;
@@ -67,13 +68,14 @@ const Calculator: React.FC = () => {
     setMonthlyIncome(monthlyIncome);
     setTaxableIncome(taxable);
     setIncomeTax(incomeTax);
-    setWithTax(gross + incomeTax + gross * 0.33 + gross * 0.08);
+    setWithTax(gross + gross * 0.33 + gross * 0.008);
     setTotalTaxes(totalTaxes);
   };
 
   const onClick = () => {
     let gross = parseInt(form.getFieldValue("gross"));
     let invoiceSum = gross - totalTaxes;
+
     form.setFieldsValue({
       monthlyIncome: globalState.invoiceSumsTotal + invoiceSum,
     });
@@ -91,7 +93,9 @@ const Calculator: React.FC = () => {
 
   const onReset = () => {
     dispatch(resetCounter());
+    dispatch(clearMessages());
     dispatch(addMessage(`The month has been reset, going back to 0.`));
+    form.resetFields();
   };
 
   return (
@@ -128,13 +132,26 @@ const Calculator: React.FC = () => {
           <Button onClick={onReset}>Reset month</Button>
         </Form.Item>
         <Divider />
-        <Statistic title="Taxable income" value={taxableIncome} />
-        <Statistic title="Income tax" value={incomeTax} />
-        <Statistic title="Total taxes" value={totalTaxes} />
-        <Statistic title="Total cost for employer" value={withTax} />
+        <Statistic
+          title="Taxable income"
+          value={Math.round(taxableIncome * 100) / 100}
+        />
+        <Statistic
+          title="Income tax"
+          value={Math.round(incomeTax * 100) / 100}
+        />
+        <Statistic title="Total taxes" value={Math.round(totalTaxes * 100)} />
+        <Statistic
+          title="Total cost for employer"
+          value={Math.round(withTax * 100) / 100}
+        />
         <Statistic
           title="Net income"
-          value={parseInt(form.getFieldValue("gross")) - totalTaxes}
+          value={
+            Math.round(
+              (parseInt(form.getFieldValue("gross")) - totalTaxes) * 100
+            ) / 100
+          }
         />
       </Form>
     </div>
