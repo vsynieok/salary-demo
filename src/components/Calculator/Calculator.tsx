@@ -140,7 +140,10 @@ const Calculator: React.FC = () => {
           title="Income tax"
           value={Math.round(incomeTax * 100) / 100}
         />
-        <Statistic title="Total taxes" value={Math.round(totalTaxes * 100)} />
+        <Statistic
+          title="Total taxes"
+          value={Math.round(totalTaxes * 100) / 100}
+        />
         <Statistic
           title="Total cost for employer"
           value={Math.round(withTax * 100) / 100}
