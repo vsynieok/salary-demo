@@ -1,4 +1,4 @@
-import { Input } from "antd";
+import { Divider, Input } from "antd";
 import { useAppSelector } from "../../app/hooks";
 
 const Logger: React.FC = () => {
@@ -14,8 +14,8 @@ const Logger: React.FC = () => {
         autoSize={{ minRows: 10, maxRows: 10 }}
         readOnly
         value={getMessages()}
-        style={{ marginBottom: 10 }}
       ></Input.TextArea>
+      <Divider />
       <Input.TextArea
         autoSize={{ minRows: 15 }}
         readOnly
