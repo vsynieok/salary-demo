@@ -42,11 +42,12 @@ const Calculator: React.FC = () => {
     }
   };
 
-  const onValuesChange = (c: any, v: any) => {
+  const onValuesChange = () => {
+    let v = form.getFieldsValue();
     let exemption = v.exemption;
 
     // executed only if monthly income was changed
-    if (c.monthlyIncome && v.monthlyIncome) {
+    if (v.monthlyIncome) {
       let monthlyIncome = parseInt(v.monthlyIncome);
 
       if (monthlyIncome <= 1200) {
@@ -57,6 +58,7 @@ const Calculator: React.FC = () => {
         exemption = 2;
       }
       form.setFieldsValue({ exemption: exemption });
+      setMonthlyIncome(monthlyIncome);
     }
 
     let gross = parseInt(v.gross);
@@ -65,7 +67,6 @@ const Calculator: React.FC = () => {
     let totalTaxes =
       incomeTax + (v.pension === 1 ? gross * 0.02 : 0) + gross * 0.016;
 
-    setMonthlyIncome(monthlyIncome);
     setTaxableIncome(taxable);
     setIncomeTax(incomeTax);
     setWithTax(gross + gross * 0.33 + gross * 0.008);
@@ -77,7 +78,7 @@ const Calculator: React.FC = () => {
     let invoiceSum = gross - totalTaxes;
 
     form.setFieldsValue({
-      monthlyIncome: globalState.invoiceSumsTotal + invoiceSum,
+      monthlyIncome: (globalState.invoiceSumsTotal + invoiceSum).toFixed(2),
     });
 
     dispatch(issueInvoice(invoiceSum));
@@ -89,6 +90,7 @@ const Calculator: React.FC = () => {
     dispatch(
       addMessage(`Total sum: ${globalState.invoiceSumsTotal + invoiceSum}`)
     );
+    onValuesChange();
   };
 
   const onReset = () => {
@@ -96,6 +98,11 @@ const Calculator: React.FC = () => {
     dispatch(clearMessages());
     dispatch(addMessage(`The month has been reset, going back to 0.`));
     form.resetFields();
+
+    setTaxableIncome(0);
+    setIncomeTax(0);
+    setWithTax(0);
+    setTotalTaxes(0);
   };
 
   return (
@@ -105,7 +112,7 @@ const Calculator: React.FC = () => {
           <Input></Input>
         </Form.Item>
         <Form.Item label="Monthly income" name="monthlyIncome">
-          <Input></Input>
+          <Input value={monthlyIncome}></Input>
         </Form.Item>
         <Form.Item label="Basic exemption" name="exemption" initialValue={0}>
           <Radio.Group>
